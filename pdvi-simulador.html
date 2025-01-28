@@ -103,10 +103,10 @@
             }
 
             // Cálculos para o Incentivo A
-            const fatorTempoA = tempoServico / 4; // Período fixo de 4 anos
-            const mediaRemuneracoesA = fatorTempoA * pesoA;
-            const valorResultanteA = salarioBase * mediaRemuneracoesA;
-            const valorFinalA = valorResultanteA * limitadorA;
+            const fatorTempoA = (tempoServico / 4).toFixed(2); // Período fixo de 4 anos e arredondamento
+            const mediaRemuneracoesA = (fatorTempoA * pesoA).toFixed(2);
+            const valorResultanteA = (salarioBase * mediaRemuneracoesA).toFixed(2);
+            const valorFinalA = (valorResultanteA * limitadorA).toFixed(2);
 
             // Determinar o período para o Incentivo B com base na idade
             let periodoB;
@@ -127,31 +127,31 @@
 
             // Cálculos para o Incentivo B
             const pesoB = 2; // Peso fixo
-            const fatorTempoB = tempoServico / periodoB;
-            const mediaRemuneracoesB = fatorTempoB * pesoB;
-            const valorResultanteB = salarioBase * mediaRemuneracoesB;
+            const fatorTempoB = (tempoServico / periodoB).toFixed(2); // Arredondamento
+            const mediaRemuneracoesB = (fatorTempoB * pesoB).toFixed(2);
+            const valorResultanteB = (salarioBase * mediaRemuneracoesB).toFixed(2);
 
             // Cálculo do total dos incentivos
-            const totalIncentivos = valorFinalA + valorResultanteB;
+            const totalIncentivos = (parseFloat(valorFinalA) + parseFloat(valorResultanteB)).toFixed(2);
 
             // Exibir resultado
             document.getElementById("resultado").innerHTML = `
                 <h3>Resultado da Simulação:</h3>
                 <p><strong>Incentivo A (por tempo de serviço):</strong></p>
-                <p>Fator de Tempo: ${fatorTempoA.toFixed(2)}</p>
+                <p>Fator de Tempo: ${fatorTempoA}</p>
                 <p>Peso: ${pesoA}</p>
-                <p>Média de Remunerações: ${mediaRemuneracoesA.toFixed(2)}</p>
-                <p>Valor Resultante: R$ ${valorResultanteA.toFixed(2)}</p>
-                <p>Valor com Limitador: R$ ${valorFinalA.toFixed(2)}</p>
+                <p>Média de Remunerações: ${mediaRemuneracoesA}</p>
+                <p>Valor Resultante: R$ ${valorResultanteA}</p>
+                <p>Valor com Limitador: R$ ${valorFinalA}</p>
                 <br>
                 <p><strong>Incentivo B (normalização financeira):</strong></p>
                 <p>Período: ${periodoB} anos</p>
-                <p>Fator de Tempo: ${fatorTempoB.toFixed(2)}</p>
+                <p>Fator de Tempo: ${fatorTempoB}</p>
                 <p>Peso: ${pesoB}</p>
-                <p>Média de Remunerações: ${mediaRemuneracoesB.toFixed(2)}</p>
-                <p>Valor Final: R$ ${valorResultanteB.toFixed(2)}</p>
+                <p>Média de Remunerações: ${mediaRemuneracoesB}</p>
+                <p>Valor Final: R$ ${valorResultanteB}</p>
                 <br>
-                <h3><strong>Total dos Incentivos:</strong> R$ ${totalIncentivos.toFixed(2)}</h3>
+                <h3><strong>Total dos Incentivos:</strong> R$ ${totalIncentivos}</h3>
             `;
         }
     </script>

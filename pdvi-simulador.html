@@ -96,10 +96,6 @@
             elemento.value = valor;
         }
 
-        function formatarValor(valor) {
-            return parseFloat(valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
-
         let conteudoPDF = '';
 
         function calcular() {
@@ -114,33 +110,47 @@
                 return;
             }
 
-            const decimoTerceiro = (salarioBase / 12 * diasTrabalhados / 30).toFixed(2);
-            const feriasProporcionais = ((salarioBase / 12 * diasTrabalhados / 30) + (salarioBase / 12 * 1 / 3)).toFixed(2);
+            const decimoTerceiro = ((salarioBase / 12) * (diasTrabalhados / 30)).toFixed(2);
+            const feriasProporcionais = ((salarioBase / 12) * (diasTrabalhados / 30) + (salarioBase / 12) * (1 / 3)).toFixed(2);
             const saldoSalario = ((salarioBase / 30) * diasTrabalhados).toFixed(2);
-            const multaFGTSPercentual = idade <= 70 ? 0.4 : idade <= 73 ? 0.35 : 0.3;
+
+            let multaFGTSPercentual = idade <= 70 ? 0.4 : (idade <= 73 ? 0.35 : 0.3);
             const multaFGTS = (saldoFGTS * multaFGTSPercentual).toFixed(2);
 
-            const totalVerbasRescisorias = (parseFloat(decimoTerceiro) + parseFloat(feriasProporcionais) + parseFloat(saldoSalario) + parseFloat(multaFGTS)).toFixed(2);
+            const totalVerbasRescisorias = (
+                parseFloat(decimoTerceiro) +
+                parseFloat(feriasProporcionais) +
+                parseFloat(saldoSalario) +
+                parseFloat(multaFGTS)
+            ).toFixed(2);
 
             const pesoA = idade <= 70 ? 3 : idade === 71 ? 2.8 : idade === 72 ? 2.6 : idade === 73 ? 2.4 : 2.2;
             const limitadorA = idade <= 70 ? 0.7 : idade === 71 ? 0.6 : idade === 72 ? 0.5 : idade === 73 ? 0.4 : 0.3;
             const periodoB = idade <= 70 ? 3 : idade === 71 ? 6 : idade === 72 ? 9 : idade === 73 ? 12 : 15;
 
             const fatorTempoA = (tempoServico / 4).toFixed(2);
-            const valorFinalA = ((salarioBase * fatorTempoA * pesoA) * limitadorA).toFixed(2);
+            const mediaRemuneracoesA = (fatorTempoA * pesoA).toFixed(2);
+            const valorResultanteA = (salarioBase * mediaRemuneracoesA).toFixed(2);
+            const valorFinalA = (valorResultanteA * limitadorA).toFixed(2);
 
             const pesoB = 2;
             const fatorTempoB = (tempoServico / periodoB).toFixed(2);
-            const valorFinalB = (salarioBase * fatorTempoB * pesoB).toFixed(2);
+            const mediaRemuneracoesB = (fatorTempoB * pesoB).toFixed(2);
+            const valorResultanteB = (salarioBase * mediaRemuneracoesB).toFixed(2);
 
-            const totalIncentivos = (parseFloat(valorFinalA) + parseFloat(valorFinalB)).toFixed(2);
+            const totalIncentivos = (
+                parseFloat(valorFinalA) +
+                parseFloat(valorResultanteB)
+            ).toFixed(2);
+
             const totalGeral = (parseFloat(totalVerbasRescisorias) + parseFloat(totalIncentivos)).toFixed(2);
 
-            document.getElementById("resultado").innerHTML = `
-                <h3>Resultado da Simulação:</h3>
-                <p><strong>Total Verbas Rescisórias: R$ ${formatarValor(totalVerbasRescisorias)}</strong></p>
-                <p><strong>Total Incentivos: R$ ${formatarValor(totalIncentivos)}</strong></p>
-                <h3><strong>Total Geral: R$ ${formatarValor(totalGeral)}</strong></h3>
+            conteudoPDF = `
+                Simulador PDVI
+
+                Total Verbas Rescisórias: R$ ${parseFloat(totalVerbasRescisorias).toLocaleString('pt-BR')}
+                Total Incentivos: R$ ${parseFloat(totalIncentivos).toLocaleString('pt-BR')}
+                Total Geral: R$ ${parseFloat(totalGeral).toLocaleString('pt-BR')}
             `;
 
             document.getElementById("gerarPDF").style.display = "block";

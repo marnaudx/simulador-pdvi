@@ -87,6 +87,7 @@
     </div>
 
     <script>
+        // Função para aplicar máscara numérica no formato brasileiro
         function mascararValor(elemento) {
             let valor = elemento.value.replace(/\D/g, '');
             valor = (parseFloat(valor) / 100).toLocaleString('pt-BR', {
@@ -98,6 +99,7 @@
 
         let conteudoPDF = '';
 
+        // Função principal para calcular verbas rescisórias e incentivos
         function calcular() {
             const idade = parseInt(document.getElementById("idade").value);
             const tempoServico = parseInt(document.getElementById("tempoServico").value);
@@ -110,6 +112,7 @@
                 return;
             }
 
+            // Cálculo das verbas rescisórias
             const decimoTerceiro = ((salarioBase / 12) * (diasTrabalhados / 30)).toFixed(2);
             const feriasProporcionais = ((salarioBase / 12) * (diasTrabalhados / 30) + (salarioBase / 12) * (1 / 3)).toFixed(2);
             const saldoSalario = ((salarioBase / 30) * diasTrabalhados).toFixed(2);
@@ -124,7 +127,27 @@
                 parseFloat(multaFGTS)
             ).toFixed(2);
 
-            const totalGeral = parseFloat(totalVerbasRescisorias).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            // Cálculo dos incentivos A e B
+            const pesoA = idade <= 70 ? 3 : idade === 71 ? 2.8 : idade === 72 ? 2.6 : idade === 73 ? 2.4 : 2.2;
+            const limitadorA = idade <= 70 ? 0.7 : idade === 71 ? 0.6 : idade === 72 ? 0.5 : idade === 73 ? 0.4 : 0.3;
+            const periodoB = idade <= 70 ? 3 : idade === 71 ? 6 : idade === 72 ? 9 : idade === 73 ? 12 : 15;
+
+            const fatorTempoA = (tempoServico / 4).toFixed(2);
+            const mediaRemuneracoesA = (fatorTempoA * pesoA).toFixed(2);
+            const valorResultanteA = (salarioBase * mediaRemuneracoesA).toFixed(2);
+            const valorFinalA = (valorResultanteA * limitadorA).toFixed(2);
+
+            const pesoB = 2;
+            const fatorTempoB = (tempoServico / periodoB).toFixed(2);
+            const mediaRemuneracoesB = (fatorTempoB * pesoB).toFixed(2);
+            const valorResultanteB = (salarioBase * mediaRemuneracoesB).toFixed(2);
+
+            const totalIncentivos = (
+                parseFloat(valorFinalA) +
+                parseFloat(valorResultanteB)
+            ).toFixed(2);
+
+            const totalGeral = (parseFloat(totalVerbasRescisorias) + parseFloat(totalIncentivos)).toFixed(2);
 
             conteudoPDF = `
                 Simulador PDVI
@@ -136,8 +159,19 @@
                 - Saldo do FGTS: R$ ${saldoFGTS.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 - Dias Trabalhados: ${diasTrabalhados} dias
 
-                Total Verbas Rescisórias: R$ ${parseFloat(totalVerbasRescisorias).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                Total Geral: R$ ${totalGeral}
+                Detalhamento das Verbas Rescisórias:
+                - 13º Salário Proporcional: R$ ${parseFloat(decimoTerceiro).toLocaleString('pt-BR')}
+                - Férias Proporcionais + 1/3: R$ ${parseFloat(feriasProporcionais).toLocaleString('pt-BR')}
+                - Saldo de Salário: R$ ${parseFloat(saldoSalario).toLocaleString('pt-BR')}
+                - Multa FGTS (${(multaFGTSPercentual * 100).toFixed(0)}%): R$ ${parseFloat(multaFGTS).toLocaleString('pt-BR')}
+                - Total Verbas Rescisórias: R$ ${parseFloat(totalVerbasRescisorias).toLocaleString('pt-BR')}
+
+                Detalhamento dos Incentivos:
+                - Incentivo A: R$ ${parseFloat(valorFinalA).toLocaleString('pt-BR')}
+                - Incentivo B: R$ ${parseFloat(valorResultanteB).toLocaleString('pt-BR')}
+                - Total dos Incentivos: R$ ${parseFloat(totalIncentivos).toLocaleString('pt-BR')}
+
+                Total Geral (Verbas + Incentivos): R$ ${parseFloat(totalGeral).toLocaleString('pt-BR')}
             `;
 
             document.getElementById("resultado").innerHTML = `
@@ -149,19 +183,38 @@
                 <p>Saldo do FGTS: R$ ${saldoFGTS.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                 <p>Dias Trabalhados: ${diasTrabalhados} dias</p>
                 <br>
-                <p><strong>Total Verbas Rescisórias: R$ ${parseFloat(totalVerbasRescisorias).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></p>
-                <h3><strong>Total Geral: R$ ${totalGeral}</strong></h3>
+                <p><strong>Detalhamento das Verbas Rescisórias:</strong></p>
+                <p>13º Salário Proporcional: R$ ${parseFloat(decimoTerceiro).toLocaleString('pt-BR')}</p>
+                <p>Férias Proporcionais + 1/3: R$ ${parseFloat(feriasProporcionais).toLocaleString('pt-BR')}</p>
+                <p>Saldo de Salário: R$ ${parseFloat(saldoSalario).toLocaleString('pt-BR')}</p>
+                <p>Multa FGTS (${(multaFGTSPercentual * 100).toFixed(0)}%): R$ ${parseFloat(multaFGTS).toLocaleString('pt-BR')}</p>
+                <p><strong>Total Verbas Rescisórias: R$ ${parseFloat(totalVerbasRescisorias).toLocaleString('pt-BR')}</strong></p>
+                <br>
+                <p><strong>Detalhamento dos Incentivos:</strong></p>
+                <p>Incentivo A: R$ ${parseFloat(valorFinalA).toLocaleString('pt-BR')}</p>
+                <p>Incentivo B: R$ ${parseFloat(valorResultanteB).toLocaleString('pt-BR')}</p>
+                <p><strong>Total dos Incentivos: R$ ${parseFloat(totalIncentivos).toLocaleString('pt-BR')}</strong></p>
+                <br>
+                <h3><strong>Total Geral (Verbas + Incentivos): R$ ${parseFloat(totalGeral).toLocaleString('pt-BR')}</strong></h3>
             `;
 
             document.getElementById("gerarPDF").style.display = "block";
         }
 
+        // Função para gerar o PDF
         function gerarPDF() {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF();
-            pdf.text(conteudoPDF, 10, 10);
+            const margemEsquerda = 10;
+            const linhaInicial = 10;
+            const espacamentoLinha = 7;
+
+            const linhas = conteudoPDF.split('\n');
+            linhas.forEach((linha, index) => {
+                pdf.text(linha, margemEsquerda, linhaInicial + index * espacamentoLinha);
+            });
+
             pdf.save('simulacao_pdvi.pdf');
         }
     </script>
-</body>
-</html>
+</body

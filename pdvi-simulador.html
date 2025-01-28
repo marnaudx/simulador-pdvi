@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Incentivos PDVI</title>
+    <title>Simulador PDVI: Incentivos e Verbas Rescisórias</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -53,7 +53,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Simulador de Incentivos PDVI</h1>
+        <h1>Simulador PDVI: Incentivos e Verbas Rescisórias</h1>
         <form id="simulatorForm">
             <label for="idade">Idade do Empregado:</label>
             <input type="number" id="idade" min="0" max="100" required>
@@ -64,79 +64,95 @@
             <label for="salarioBase">Salário Base (em R$):</label>
             <input type="number" id="salarioBase" step="0.01" required>
 
-            <button type="button" onclick="calcularIncentivo()">Calcular Incentivo</button>
+            <label for="saldoFGTS">Saldo do FGTS (em R$):</label>
+            <input type="number" id="saldoFGTS" step="0.01" required>
+
+            <label for="diasTrabalhados">Dias trabalhados no mês da rescisão:</label>
+            <input type="number" id="diasTrabalhados" min="0" max="31" required>
+
+            <button type="button" onclick="calcular()">Calcular</button>
         </form>
         <div id="resultado" class="result"></div>
     </div>
 
     <script>
-        function calcularIncentivo() {
+        function calcular() {
             const idade = parseInt(document.getElementById("idade").value);
             const tempoServico = parseInt(document.getElementById("tempoServico").value);
             const salarioBase = parseFloat(document.getElementById("salarioBase").value);
+            const saldoFGTS = parseFloat(document.getElementById("saldoFGTS").value);
+            const diasTrabalhados = parseInt(document.getElementById("diasTrabalhados").value);
 
-            if (!idade || !tempoServico || !salarioBase) {
+            if (!idade || !tempoServico || !salarioBase || !saldoFGTS || !diasTrabalhados) {
                 alert("Por favor, preencha todos os campos corretamente.");
                 return;
             }
 
-            // Definir multiplicadores e limitadores para o Incentivo A
-            let pesoA, limitadorA;
+            // Cálculo das verbas rescisórias
+            const decimoTerceiro = ((salarioBase / 12) * (diasTrabalhados / 30)).toFixed(2);
+            const feriasProporcionais = ((salarioBase / 12) * (diasTrabalhados / 30) + (salarioBase / 12) * (1 / 3)).toFixed(2);
+            const saldoSalario = ((salarioBase / 30) * diasTrabalhados).toFixed(2);
+            let multaFGTS;
             if (idade <= 70) {
-                pesoA = 3;
-                limitadorA = 0.7;
+                multaFGTS = (saldoFGTS * 0.4).toFixed(2);
+            } else if (idade <= 74) {
+                multaFGTS = (saldoFGTS * 0.35).toFixed(2);
+            } else {
+                multaFGTS = (saldoFGTS * 0.3).toFixed(2);
+            }
+            const totalVerbasRescisorias = (
+                parseFloat(decimoTerceiro) +
+                parseFloat(feriasProporcionais) +
+                parseFloat(saldoSalario) +
+                parseFloat(multaFGTS)
+            ).toFixed(2);
+
+            // Cálculos dos Incentivos
+            let pesoA, limitadorA, periodoB;
+            if (idade <= 70) {
+                pesoA = 3; limitadorA = 0.7; periodoB = 3;
             } else if (idade === 71) {
-                pesoA = 2.8;
-                limitadorA = 0.6;
+                pesoA = 2.8; limitadorA = 0.6; periodoB = 6;
             } else if (idade === 72) {
-                pesoA = 2.6;
-                limitadorA = 0.5;
+                pesoA = 2.6; limitadorA = 0.5; periodoB = 9;
             } else if (idade === 73) {
-                pesoA = 2.4;
-                limitadorA = 0.4;
+                pesoA = 2.4; limitadorA = 0.4; periodoB = 12;
             } else if (idade === 74) {
-                pesoA = 2.2;
-                limitadorA = 0.3;
+                pesoA = 2.2; limitadorA = 0.3; periodoB = 15;
             } else {
                 alert("Idade fora do intervalo suportado pelo regulamento.");
                 return;
             }
 
-            // Cálculos para o Incentivo A
-            const fatorTempoA = (tempoServico / 4).toFixed(2); // Período fixo de 4 anos e arredondamento
+            const fatorTempoA = (tempoServico / 4).toFixed(2);
             const mediaRemuneracoesA = (fatorTempoA * pesoA).toFixed(2);
             const valorResultanteA = (salarioBase * mediaRemuneracoesA).toFixed(2);
             const valorFinalA = (valorResultanteA * limitadorA).toFixed(2);
 
-            // Determinar o período para o Incentivo B com base na idade
-            let periodoB;
-            if (idade <= 70) {
-                periodoB = 3;
-            } else if (idade === 71) {
-                periodoB = 6;
-            } else if (idade === 72) {
-                periodoB = 9;
-            } else if (idade === 73) {
-                periodoB = 12;
-            } else if (idade === 74) {
-                periodoB = 15;
-            } else {
-                alert("Idade fora do intervalo suportado pelo regulamento.");
-                return;
-            }
-
-            // Cálculos para o Incentivo B
-            const pesoB = 2; // Peso fixo
-            const fatorTempoB = (tempoServico / periodoB).toFixed(2); // Arredondamento
+            const pesoB = 2;
+            const fatorTempoB = (tempoServico / periodoB).toFixed(2);
             const mediaRemuneracoesB = (fatorTempoB * pesoB).toFixed(2);
             const valorResultanteB = (salarioBase * mediaRemuneracoesB).toFixed(2);
 
-            // Cálculo do total dos incentivos
-            const totalIncentivos = (parseFloat(valorFinalA) + parseFloat(valorResultanteB)).toFixed(2);
+            const totalIncentivos = (
+                parseFloat(valorFinalA) +
+                parseFloat(valorResultanteB)
+            ).toFixed(2);
+
+            // Soma final de tudo
+            const totalGeral = (parseFloat(totalVerbasRescisorias) + parseFloat(totalIncentivos)).toFixed(2);
 
             // Exibir resultado
             document.getElementById("resultado").innerHTML = `
                 <h3>Resultado da Simulação:</h3>
+                <p><strong>Verbas Rescisórias:</strong></p>
+                <p>13º Salário Proporcional: R$ ${decimoTerceiro}</p>
+                <p>Férias Proporcionais + 1/3: R$ ${feriasProporcionais}</p>
+                <p>Saldo de Salário: R$ ${saldoSalario}</p>
+                <p>Multa Rescisória FGTS: R$ ${multaFGTS}</p>
+                <p><strong>Total de Verbas Rescisórias: R$ ${totalVerbasRescisorias}</strong></p>
+                <br>
+                <p><strong>Incentivos:</strong></p>
                 <p><strong>Incentivo A (por tempo de serviço):</strong></p>
                 <p>Fator de Tempo: ${fatorTempoA}</p>
                 <p>Peso: ${pesoA}</p>
@@ -150,8 +166,9 @@
                 <p>Peso: ${pesoB}</p>
                 <p>Média de Remunerações: ${mediaRemuneracoesB}</p>
                 <p>Valor Final: R$ ${valorResultanteB}</p>
+                <p><strong>Total dos Incentivos: R$ ${totalIncentivos}</strong></p>
                 <br>
-                <h3><strong>Total dos Incentivos:</strong> R$ ${totalIncentivos}</h3>
+                <h3><strong>Total Geral (Verbas Rescisórias + Incentivos): R$ ${totalGeral}</strong></h3>
             `;
         }
     </script>

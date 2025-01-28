@@ -124,33 +124,33 @@
                 parseFloat(multaFGTS)
             ).toFixed(2);
 
-            const pesoA = idade <= 70 ? 3 : idade === 71 ? 2.8 : idade === 72 ? 2.6 : idade === 73 ? 2.4 : 2.2;
-            const limitadorA = idade <= 70 ? 0.7 : idade === 71 ? 0.6 : idade === 72 ? 0.5 : idade === 73 ? 0.4 : 0.3;
-            const periodoB = idade <= 70 ? 3 : idade === 71 ? 6 : idade === 72 ? 9 : idade === 73 ? 12 : 15;
-
-            const fatorTempoA = (tempoServico / 4).toFixed(2);
-            const mediaRemuneracoesA = (fatorTempoA * pesoA).toFixed(2);
-            const valorResultanteA = (salarioBase * mediaRemuneracoesA).toFixed(2);
-            const valorFinalA = (valorResultanteA * limitadorA).toFixed(2);
-
-            const pesoB = 2;
-            const fatorTempoB = (tempoServico / periodoB).toFixed(2);
-            const mediaRemuneracoesB = (fatorTempoB * pesoB).toFixed(2);
-            const valorResultanteB = (salarioBase * mediaRemuneracoesB).toFixed(2);
-
-            const totalIncentivos = (
-                parseFloat(valorFinalA) +
-                parseFloat(valorResultanteB)
-            ).toFixed(2);
-
-            const totalGeral = (parseFloat(totalVerbasRescisorias) + parseFloat(totalIncentivos)).toFixed(2);
+            const totalGeral = parseFloat(totalVerbasRescisorias).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 
             conteudoPDF = `
                 Simulador PDVI
 
-                Total Verbas Rescisórias: R$ ${parseFloat(totalVerbasRescisorias).toLocaleString('pt-BR')}
-                Total Incentivos: R$ ${parseFloat(totalIncentivos).toLocaleString('pt-BR')}
-                Total Geral: R$ ${parseFloat(totalGeral).toLocaleString('pt-BR')}
+                Dados de Entrada:
+                - Idade: ${idade} anos
+                - Tempo de Serviço: ${tempoServico} anos
+                - Salário Base: R$ ${salarioBase.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                - Saldo do FGTS: R$ ${saldoFGTS.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                - Dias Trabalhados: ${diasTrabalhados} dias
+
+                Total Verbas Rescisórias: R$ ${parseFloat(totalVerbasRescisorias).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                Total Geral: R$ ${totalGeral}
+            `;
+
+            document.getElementById("resultado").innerHTML = `
+                <h3>Resultado da Simulação:</h3>
+                <p><strong>Dados de Entrada:</strong></p>
+                <p>Idade: ${idade} anos</p>
+                <p>Tempo de Serviço: ${tempoServico} anos</p>
+                <p>Salário Base: R$ ${salarioBase.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <p>Saldo do FGTS: R$ ${saldoFGTS.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <p>Dias Trabalhados: ${diasTrabalhados} dias</p>
+                <br>
+                <p><strong>Total Verbas Rescisórias: R$ ${parseFloat(totalVerbasRescisorias).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></p>
+                <h3><strong>Total Geral: R$ ${totalGeral}</strong></h3>
             `;
 
             document.getElementById("gerarPDF").style.display = "block";

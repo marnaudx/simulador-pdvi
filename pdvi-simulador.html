@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador PDVI Completo</title>
+    <title>Simulador PDVI com PDF</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script> <!-- Importa jsPDF -->
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -49,12 +50,20 @@
             padding: 15px;
             border: 1px solid #ccc;
             border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        #gerarPDF {
+            display: none;
+            background: #007bff;
+        }
+        #gerarPDF:hover {
+            background: #0056b3;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Simulador PDVI Completo</h1>
+        <h1>Simulador PDVI com PDF</h1>
         <form id="simulatorForm">
             <label for="idade">Idade do Empregado:</label>
             <input type="number" id="idade" min="0" max="100" required>
@@ -74,6 +83,7 @@
             <button type="button" onclick="calcular()">Calcular</button>
         </form>
         <div id="resultado" class="result"></div>
+        <button id="gerarPDF" onclick="gerarPDF()">Gerar PDF</button>
     </div>
 
     <script>
@@ -86,6 +96,8 @@
             });
             elemento.value = valor; // Atualiza o campo com o valor formatado
         }
+
+        let conteudoPDF = ''; // Variável para armazenar o conteúdo do PDF
 
         // Função principal para calcular verbas rescisórias e incentivos
         function calcular() {
@@ -105,7 +117,6 @@
             const feriasProporcionais = ((salarioBase / 12) * (diasTrabalhados / 30) + (salarioBase / 12) * (1 / 3)).toFixed(2);
             const saldoSalario = ((salarioBase / 30) * diasTrabalhados).toFixed(2);
 
-            // Determinar a multa rescisória sobre o FGTS com base na idade
             let multaFGTSPercentual;
             if (idade <= 70) {
                 multaFGTSPercentual = 0.4; // 40%
@@ -126,22 +137,10 @@
                 parseFloat(multaFGTS)
             ).toFixed(2);
 
-            // Cálculos dos incentivos A e B
-            let pesoA, limitadorA, periodoB;
-            if (idade <= 70) {
-                pesoA = 3; limitadorA = 0.7; periodoB = 3;
-            } else if (idade === 71) {
-                pesoA = 2.8; limitadorA = 0.6; periodoB = 6;
-            } else if (idade === 72) {
-                pesoA = 2.6; limitadorA = 0.5; periodoB = 9;
-            } else if (idade === 73) {
-                pesoA = 2.4; limitadorA = 0.4; periodoB = 12;
-            } else if (idade === 74) {
-                pesoA = 2.2; limitadorA = 0.3; periodoB = 15;
-            } else {
-                alert("Idade fora do intervalo suportado pelo regulamento.");
-                return;
-            }
+            // Cálculo dos incentivos A e B
+            const pesoA = idade <= 70 ? 3 : idade === 71 ? 2.8 : idade === 72 ? 2.6 : idade === 73 ? 2.4 : 2.2;
+            const limitadorA = idade <= 70 ? 0.7 : idade === 71 ? 0.6 : idade === 72 ? 0.5 : idade === 73 ? 0.4 : 0.3;
+            const periodoB = idade <= 70 ? 3 : idade === 71 ? 6 : idade === 72 ? 9 : idade === 73 ? 12 : 15;
 
             const fatorTempoA = (tempoServico / 4).toFixed(2);
             const mediaRemuneracoesA = (fatorTempoA * pesoA).toFixed(2);
@@ -161,7 +160,24 @@
             // Soma final de tudo
             const totalGeral = (parseFloat(totalVerbasRescisorias) + parseFloat(totalIncentivos)).toFixed(2);
 
-            // Exibir resultado
+            // Gera o conteúdo do PDF
+            conteudoPDF = `
+                Verbas Rescisórias:
+                - 13º Salário Proporcional: R$ ${parseFloat(decimoTerceiro).toLocaleString('pt-BR')}
+                - Férias Proporcionais + 1/3: R$ ${parseFloat(feriasProporcionais).toLocaleString('pt-BR')}
+                - Saldo de Salário: R$ ${parseFloat(saldoSalario).toLocaleString('pt-BR')}
+                - Multa Rescisória FGTS (${(multaFGTSPercentual * 100).toFixed(0)}%): R$ ${parseFloat(multaFGTS).toLocaleString('pt-BR')}
+                - Total Verbas Rescisórias: R$ ${parseFloat(totalVerbasRescisorias).toLocaleString('pt-BR')}
+
+                Incentivos:
+                - Incentivo A: R$ ${parseFloat(valorFinalA).toLocaleString('pt-BR')}
+                - Incentivo B: R$ ${parseFloat(valorResultanteB).toLocaleString('pt-BR')}
+                - Total dos Incentivos: R$ ${parseFloat(totalIncentivos).toLocaleString('pt-BR')}
+
+                Total Geral: R$ ${parseFloat(totalGeral).toLocaleString('pt-BR')}
+            `;
+
+            // Atualiza os resultados na página
             document.getElementById("resultado").innerHTML = `
                 <h3>Resultado da Simulação:</h3>
                 <p><strong>Verbas Rescisórias:</strong></p>
@@ -172,23 +188,23 @@
                 <p><strong>Total de Verbas Rescisórias: R$ ${parseFloat(totalVerbasRescisorias).toLocaleString('pt-BR')}</strong></p>
                 <br>
                 <p><strong>Incentivos:</strong></p>
-                <p><strong>Incentivo A (por tempo de serviço):</strong></p>
-                <p>Fator de Tempo: ${fatorTempoA}</p>
-                <p>Peso: ${pesoA}</p>
-                <p>Média de Remunerações: ${mediaRemuneracoesA}</p>
-                <p>Valor Resultante: R$ ${parseFloat(valorResultanteA).toLocaleString('pt-BR')}</p>
-                <p>Valor com Limitador: R$ ${parseFloat(valorFinalA).toLocaleString('pt-BR')}</p>
-                <br>
-                <p><strong>Incentivo B (normalização financeira):</strong></p>
-                <p>Período: ${periodoB} anos</p>
-                <p>Fator de Tempo: ${fatorTempoB}</p>
-                <p>Peso: ${pesoB}</p>
-                <p>Média de Remunerações: ${mediaRemuneracoesB}</p>
-                <p>Valor Final: R$ ${parseFloat(valorResultanteB).toLocaleString('pt-BR')}</p>
+                <p>Incentivo A: R$ ${parseFloat(valorFinalA).toLocaleString('pt-BR')}</p>
+                <p>Incentivo B: R$ ${parseFloat(valorResultanteB).toLocaleString('pt-BR')}</p>
                 <p><strong>Total dos Incentivos: R$ ${parseFloat(totalIncentivos).toLocaleString('pt-BR')}</strong></p>
                 <br>
-                <h3><strong>Total Geral (Verbas Rescisórias + Incentivos): R$ ${parseFloat(totalGeral).toLocaleString('pt-BR')}</strong></h3>
+                <h3><strong>Total Geral: R$ ${parseFloat(totalGeral).toLocaleString('pt-BR')}</strong></h3>
             `;
+
+            // Exibe o botão para gerar o PDF
+            document.getElementById("gerarPDF").style.display = "block";
+        }
+
+        // Função para gerar o PDF
+        function gerarPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+            pdf.text(conteudoPDF, 10, 10); // Adiciona o conteúdo ao PDF
+            pdf.save('simulacao_pdvi.pdf'); // Salva o arquivo
         }
     </script>
 </body>

@@ -3,6 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador PDVI com PDF</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script> <!-- Importa jsPDF -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #218838;
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        #gerarPDF {
+            display: none;
+            background: #007bff;
+        }
+        #gerarPDF:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simulador PDVI com PDF</h1>
+        <form id="simulatorForm">
+            <label for="idade">Idade do Empregado:</label>
+            <input type="number" id="idade" min="0" max="100" required>
+
+            <label for="tempoServico">Tempo de Serviço (em anos):</label>
+            <input type="number" id="tempoServico" min="0" required>
+
+            <label for="salarioBase">Salário Base (em R$):</label>
+            <input type="text" id="salarioBase" placeholder="0,00" oninput="mascararValor(this)" required>
+
+            <label for="saldoFGTS">Saldo do FGTS (em R$):</label>
+            <input type="text" id="saldoFGTS" placeholder="0,00" oninput="mascararValor(this)" required>
+
+            <label for="diasTrabalhados">Dias trabalhados no mês da rescisão:</label>
+            <input type="number" id="diasTrabalhados" min="0" max="31" required>
+
+            <button type="button" onclick="calcular()">Calcular</button>
+        </form>
+        <div id="resultado" class="result"></div>
+        <button id="gerarPDF" onclick="gerarPDF()">Gerar PDF</button>
+    </div>
+
+    <script>
+        // Função para aplicar máscara numérica no formato brasileiro
+        function mascararValor(elemento) {
+            let valor = elemento.value.replace(/\D/g, ''); // Remove tudo que não for número
+            valor = (parseFloat(valor) / 100).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            elemento.value = valor; // Atualiza o campo com o valor formatado
+        }
+
+        let conteudoPDF = ''; // Variável para armazenar o conteúdo do PDF
+
+        // Função principal para calcular verbas rescisórias e incentivos
+        function calcular() {
+            const idade = parseInt(document.getElementById("idade").value);
+            const tempoServico = parseInt(document.getElementById("tempoServico").value);
+            const salarioBase = parseFloat(document.getElementById("salarioBase").value.replace(/\./g, '').replace(',', '.'));
+            const saldoFGTS = parseFloat(document.getElementById("saldoFGTS").value.replace(/\./g, '').replace(',', '.'));
+            const diasTrabalhados = parseInt(document.getElementById("diasTrabalhados").value);
+
+            if (!idade || !tempoServico || !salarioBase || !saldoFGTS || !diasTrabalhados) {
+                alert("Por favor, preencha todos os campos corretamente.");
+                return;
+            }
+
+            // Cálculo das verbas rescisórias
+            const decimoTerceiro = ((salarioBase / 12) * (diasTrabalhados / 30)).toFixed(2);
+            const feriasProporcionais = ((salarioBase / 12) * (diasTrabalhados / 30) + (salarioBase / 12) * (1 / 3)).toFixed(2);
+            const saldoSalario = ((salarioBase / 30) * diasTrabalhados).toFixed(2);
+
+            let multaFGTSPercentual;
+            if (idade <= 70) {
+                multaFGTSPercentual = 0.4; // 40%
+            } else if (idade === 71 || idade === 72 || idade === 73) {
+                multaFGTSPercentual = 0.35; // 35%
+            } else if (idade === 74) {
+                multaFGTSPercentual = 0.3; // 30%
+            } else {
+                alert("Idade fora do intervalo suportado pelo regulamento.");
+                return;
+            }
+            const multaFGTS = (saldoFGTS * multaFGTSPercentual).toFixed(2);
+
+            const totalVerbasRescisorias = (
+                parseFloat(decimoTerceiro) +
+                parseFloat(feriasProporcionais) +
+                parseFloat(saldoSalario) +
+                parseFloat(multaFGTS)
+            ).toFixed(2);
+
+            // Cálculo dos incentivos A e B
+            const pesoA = idade <= 70 ? 3 : idade === 71 ? 2.8 : idade === 72 ? 2.6 : idade === 73 ? 2.4 : 2.2;
+            const limitadorA = idade <= 70 ? 0.7 : idade === 71 ? 0.6 : idade === 72 ? 0.5 : idade === 73 ? 0.4 : 0.3;
+            const periodoB = idade <= 70 ? 3 : idade === 71 ? 6 : idade === 72 ? 9 : idade === 73 ? 12 : 15;
+
+            const fatorTempoA = (tempoServico / 4).toFixed(2);
+            const mediaRemuneracoesA = (fatorTempoA * pesoA).toFixed(2);
+            const valorResultanteA = (salarioBase * mediaRemuneracoesA).toFixed(2);
+            const valorFinalA = (valorResultanteA * limitadorA).toFixed(2);
+
+            const pesoB = 2;
+            const fatorTempoB = (tempoServico / periodoB).toFixed(2);
+            const mediaRemuneracoesB = (fatorTempoB * pesoB).toFixed(2);
+            const valorResultanteB = (salarioBase * mediaRemuneracoesB).toFixed(2);
+
+            const totalIncentivos = (
+                parseFloat(valorFinalA) +
+                parseFloat(valorResultanteB)
+            ).toFixed(2);
+
+            // Soma final de tudo
+            const totalGeral = (parseFloat(totalVerbasRescisorias) + parseFloat(totalIncentivos)).toFixed(2);
+
+            // Gera o conteúdo do PDF
+            conteudoPDF = `
+                Dados de Entrada:
+                - Idade: ${idade} anos
+                - Tempo de Serviço: ${tempoServico} anos
+                - Salário Base: R$ ${salarioBase.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                - Saldo do FGTS: R$ ${saldoFGTS.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                - Dias Trabalhados: ${diasTrabalhados} dias
+
+                Verbas Rescisórias:
+                - 13º Salário Proporcional: R$ ${parseFloat(decimoTerceiro).toLocaleString('pt-BR')}
+                - Férias Proporcionais + 1/3: R$ ${parseFloat(feriasProporcionais).toLocaleString('pt-BR')}
+                - Saldo de Salário: R$ ${parseFloat(saldoSalario).toLocaleString('pt-BR')}
+                - Multa FGTS (${(multaFGTSPercentual * 100).toFixed(0)}%): R$ ${parseFloat(multaFGTS).toLocaleString('pt-BR')}
+                - Total Verbas Rescisórias: R$ ${parseFloat(totalVerbasRes
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador PDVI</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script> <!-- Importa jsPDF -->
     <style>
@@ -165,3 +342,4 @@
     </script>
 </body>
 </html>
+                                                            

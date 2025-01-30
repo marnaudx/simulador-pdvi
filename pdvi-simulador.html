@@ -191,42 +191,46 @@ conteudoPDF = `
             
     
 
+
+function formatarMoeda(valor) {
+    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 // Atualiza os resultados na página
 document.getElementById("resultado").innerHTML = `
     <h3>Resultado da Simulação:</h3>
     <p><strong>Dados de Entrada:</strong></p>
     <p>Idade: ${idade} anos</p>
     <p>Tempo de Serviço: ${tempoServico} anos</p>
-    <p>Salário Base: R$ ${salarioBase.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-    <p>Saldo do FGTS: R$ ${saldoFGTS.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+    <p>Salário Base: ${formatarMoeda(salarioBase)}</p>
+    <p>Saldo do FGTS: ${formatarMoeda(saldoFGTS)}</p>
     <p>Dias Trabalhados no Mês da Rescisão: ${diasTrabalhados} dias</p>
     <br>
     <p><strong>Verbas Rescisórias:</strong></p>
-    <p>13º Salário Proporcional: R$ ${decimoTerceiro.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-    <p>Férias Proporcionais + 1/3: R$ ${feriasProporcionais.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-    <p>Saldo de Salário: R$ ${saldoSalario.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-    <p>Multa Rescisória FGTS (${(multaFGTSPercentual * 100).toFixed(0)}%): R$ ${multaFGTS.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-    <p><strong>Total de Verbas Rescisórias: R$ ${totalVerbasRescisorias.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
+    <p>13º Salário Proporcional: ${formatarMoeda(decimoTerceiro)}</p>
+    <p>Férias Proporcionais + 1/3: ${formatarMoeda(feriasProporcionais)}</p>
+    <p>Saldo de Salário: ${formatarMoeda(saldoSalario)}</p>
+    <p>Multa Rescisória FGTS (${(multaFGTSPercentual * 100).toFixed(0)}%): ${formatarMoeda(multaFGTS)}</p>
+    <p><strong>Total de Verbas Rescisórias: ${formatarMoeda(totalVerbasRescisorias)}</strong></p>
     <br>
     <p><strong>Incentivos:</strong></p>
     <p><strong>Incentivo A (detalhado):</strong></p>
     <p>Fator de Tempo: ${fatorTempoA}</p>
     <p>Peso: ${pesoA}</p>
     <p>Média de Remunerações: ${mediaRemuneracoesA}</p>
-    <p>Valor Resultante: R$ ${valorResultanteA.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-    <p>Valor com Limitador: R$ ${valorFinalA.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+    <p>Valor Resultante: ${formatarMoeda(valorResultanteA)}</p>
+    <p>Valor com Limitador: ${formatarMoeda(valorFinalA)}</p>
     <br>
     <p><strong>Incentivo B (detalhado):</strong></p>
     <p>Período: ${periodoB} anos</p>
     <p>Fator de Tempo: ${fatorTempoB}</p>
     <p>Peso: ${pesoB}</p>
     <p>Média de Remunerações: ${mediaRemuneracoesB}</p>
-    <p>Valor Final: R$ ${valorResultanteB.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-    <p><strong>Total dos Incentivos: R$ ${totalIncentivos.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></p>
+    <p>Valor Final: ${formatarMoeda(valorResultanteB)}</p>
+    <p><strong>Total dos Incentivos: ${formatarMoeda(totalIncentivos)}</strong></p>
     <br>
-    <h3><strong>Total Geral (Verbas Rescisórias + Incentivos): R$ ${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong></h3>
-`;
-            
+    <h3><strong>Total Geral (Verbas Rescisórias + Incentivos): ${formatarMoeda(totalGeral)}</strong></h3>
+`;      
             // Exibe o botão para gerar o PDF
             document.getElementById("gerarPDF").style.display = "block";
         }

@@ -160,29 +160,31 @@
             // Soma final de tudo
             const totalGeral = (parseFloat(totalVerbasRescisorias) + parseFloat(totalIncentivos)).toFixed(2);
 
-            // Gera o conteúdo do PDF
-            conteudoPDF = `
-                Dados de Entrada:
-                - Idade: ${idade} anos
-                - Tempo de Serviço: ${tempoServico} anos
-                - Salário Base: R$ ${salarioBase.toLocaleString('pt-BR')}
-                - Saldo do FGTS: R$ ${saldoFGTS.toLocaleString('pt-BR')}
-                - Dias Trabalhados no Mês da Rescisão: ${diasTrabalhados} dias
+// Gera o conteúdo do PDF
+conteudoPDF = `
+    Dados de Entrada:
+    - Idade: ${idade} anos
+    - Tempo de Serviço: ${tempoServico} anos
+    - Salário Base: R$ ${salarioBase.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+    - Saldo do FGTS: R$ ${saldoFGTS.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+    - Dias Trabalhados no Mês da Rescisão: ${diasTrabalhados} dias
 
-                Verbas Rescisórias:
-                - 13º Salário Proporcional: R$ ${parseFloat(decimoTerceiro).toLocaleString('pt-BR')}
-                - Férias Proporcionais + 1/3: R$ ${parseFloat(feriasProporcionais).toLocaleString('pt-BR')}
-                - Saldo de Salário: R$ ${parseFloat(saldoSalario).toLocaleString('pt-BR')}
-                - Multa Rescisória FGTS (${(multaFGTSPercentual * 100).toFixed(0)}%): R$ ${parseFloat(multaFGTS).toLocaleString('pt-BR')}
-                - Total Verbas Rescisórias: R$ ${parseFloat(totalVerbasRescisorias).toLocaleString('pt-BR')}
+    Verbas Rescisórias:
+    - 13º Salário Proporcional: R$ ${decimoTerceiro.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+    - Férias Proporcionais + 1/3: R$ ${feriasProporcionais.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+    - Saldo de Salário: R$ ${saldoSalario.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+    - Multa Rescisória FGTS (${(multaFGTSPercentual * 100).toFixed(0)}%): R$ ${multaFGTS.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+    - Total Verbas Rescisórias: R$ ${totalVerbasRescisorias.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 
-                Incentivos:
-                - Incentivo A: R$ ${parseFloat(valorFinalA).toLocaleString('pt-BR')}
-                - Incentivo B: R$ ${parseFloat(valorResultanteB).toLocaleString('pt-BR')}
-                - Total dos Incentivos: R$ ${parseFloat(totalIncentivos).toLocaleString('pt-BR')}
+    Incentivos:
+    - Incentivo A: R$ ${valorFinalA.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+    - Incentivo B: R$ ${valorResultanteB.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+    - Total dos Incentivos: R$ ${totalIncentivos.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 
-                Total Geral: R$ ${parseFloat(totalGeral).toLocaleString('pt-BR')}
-            `;
+    Total Geral: R$ ${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+`;
+                
+            
 
 // Atualiza os resultados na página
 document.getElementById("resultado").innerHTML = `

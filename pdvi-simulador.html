@@ -160,30 +160,36 @@
             // Soma final de tudo
             const totalGeral = (parseFloat(totalVerbasRescisorias) + parseFloat(totalIncentivos)).toFixed(2);
 
+// Função para formatar o valor como moeda brasileira
+function formatarMoeda(valor) {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
+}
+
 // Gera o conteúdo do PDF
 conteudoPDF = `
     Dados de Entrada:
     - Idade: ${idade} anos
     - Tempo de Serviço: ${tempoServico} anos
-    - Salário Base: ${salarioBase.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-    - Saldo do FGTS: ${saldoFGTS.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+    - Salário Base: ${formatarMoeda(salarioBase)}
+    - Saldo do FGTS: ${formatarMoeda(saldoFGTS)}
     - Dias Trabalhados no Mês da Rescisão: ${diasTrabalhados} dias
 
     Verbas Rescisórias:
-    - 13º Salário Proporcional: ${decimoTerceiro.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-    - Férias Proporcionais + 1/3: ${feriasProporcionais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-    - Saldo de Salário: ${saldoSalario.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-    - Multa Rescisória FGTS (${(multaFGTSPercentual * 100).toFixed(0)}%): ${multaFGTS.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-    - **Total Verbas Rescisórias: ${totalVerbasRescisorias.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}**
+    - 13º Salário Proporcional: ${formatarMoeda(decimoTerceiro)}
+    - Férias Proporcionais + 1/3: ${formatarMoeda(feriasProporcionais)}
+    - Saldo de Salário: ${formatarMoeda(saldoSalario)}
+    - Multa Rescisória FGTS (${(multaFGTSPercentual * 100).toFixed(0)}%): ${formatarMoeda(multaFGTS)}
+    - **Total Verbas Rescisórias: ${formatarMoeda(totalVerbasRescisorias)}**
 
     Incentivos:
-    - Incentivo A: ${valorFinalA.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-    - Incentivo B: ${valorResultanteB.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-    - **Total dos Incentivos: ${totalIncentivos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}**
+    - Incentivo A: ${formatarMoeda(valorFinalA)}
+    - Incentivo B: ${formatarMoeda(valorResultanteB)}
+    - **Total dos Incentivos: ${formatarMoeda(totalIncentivos)}**
 
-    **Total Geral: ${totalGeral.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}**
+    **Total Geral: ${formatarMoeda(totalGeral)}**
 `;
-        
+            
+    
 
 // Atualiza os resultados na página
 document.getElementById("resultado").innerHTML = `

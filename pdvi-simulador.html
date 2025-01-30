@@ -174,7 +174,7 @@
                 - Férias Proporcionais + 1/3: R$ ${parseFloat(feriasProporcionais).toLocaleString('pt-BR')}
                 - Saldo de Salário: R$ ${parseFloat(saldoSalario).toLocaleString('pt-BR')}
                 - Multa Rescisória FGTS (${(multaFGTSPercentual * 100).toFixed(0)}%): R$ ${parseFloat(multaFGTS).toLocaleString('pt-BR')}
-                - Total Verbas Rescisórias: R$ ${parseFloat(totalVerbasRescisorias).toLocaleString('pt-BR', minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                - Total Verbas Rescisórias: R$ ${parseFloat(totalVerbasRescisorias).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
                 Incentivos:
                 - Incentivo A: R$ ${parseFloat(valorFinalA).toLocaleString('pt-BR')}

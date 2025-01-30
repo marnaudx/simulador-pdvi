@@ -90,10 +90,7 @@
         // Função para aplicar máscara numérica no formato brasileiro
         function mascararValor(elemento) {
             let valor = elemento.value.replace(/\D/g, ''); // Remove tudo que não for número
-            valor = (parseFloat(valor) / 100).toLocaleString('pt-BR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
+            valor = (parseFloat(valor) / 100).toLocaleString('pt-BR');
             elemento.value = valor; // Atualiza o campo com o valor formatado
         }
 

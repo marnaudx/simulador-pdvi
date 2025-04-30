@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador PDVI</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f4f4f9; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h1 { text-align: center; color: #333; }
+    label, select, input, button { display: block; width: 100%; margin-bottom: 10px; font-size: 16px; }
+    button { padding: 10px; border: none; border-radius: 5px; cursor: pointer; }
+    button#calcular { background: #28a745; color: white; }
+    button#calcular:hover { background: #218838; }
+    button#gerarPDF { background: #007bff; color: white; display: none; }
+    button#gerarPDF:hover { background: #0056b3; }
+    .result { background: #f8f9fa; padding: 15px; border: 1px solid #ccc; border-radius: 5px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Simulador PDVI</h1>
+    <form id="simulatorForm">
+      <label for="versao">Versão do PDVI:</label>
+      <select id="versao">
+        <option value="atual">PDVI Atual</option>
+        <option value="2021">PDVI 2021</option>
+      </select>
+      <label for="idade">Idade do Empregado:</label>
+      <input type="number" id="idade" min="0" max="100" required>
+
+      <label for="tempoServico">Tempo de Serviço (em anos):</label>
+      <input type="number" id="tempoServico" min="0" required>
+
+      <label for="salarioBase">Salário Base (em R$):</label>
+      <input type="text" id="salarioBase" placeholder="0,00" oninput="mascararValor(this)" required>
+
+      <label for="saldoFGTS">Saldo do FGTS (em R$):</label>
+      <input type="text" id="saldoFGTS" placeholder="0,00" oninput="mascararValor(this)" required>
+
+      <label for="diasTrabalhados">Dias trabalhados no mês da rescisão:</label>
+      <input type="number" id="diasTrabalhados" min="0" max="31" required>
+
+      <button type="button" id="calcular">Calcular</button>
+    </form>
+    <div id="resultado" class="result"></div>
+    <button id="gerarPDF">Gerar PDF</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+  <script>
+    function mascararValor(el) {
+      let valor = el.value.replace(/\D/g, '');
+      el.value = (parseFloat(valor) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    }
+
+    let conteudoPDF = '';
+
+    document.getElementById("calcular").addEventListener("click", calcular);
+    document.getElementById("gerarPDF").addEventListener("click", gerarPDF);
+
+    function calcular() {
+      const versao = document.getElementById("versao").value;
+      const idade = parseInt(document.getElementById("idade").value);
+      const tempoServico = parseInt(document.getElementById("tempoServico").value);
+      const salarioBase = parseFloat(document.getElementById("salarioBase").value.replace(/\./g, '').replace(',', '.'));
+      const saldoFGTS = parseFloat(document.getElementById("saldoFGTS").value.replace(/\./g, '').replace(',', '.'));
+      const diasTrabalhados = parseInt(document.getElementById("diasTrabalhados").value);
+
+      if (isNaN(idade) || isNaN(tempoServico) || isNaN(salarioBase) || isNaN(saldoFGTS) || isNaN(diasTrabalhados)) {
+        alert("Por favor, preencha todos os campos corretamente.");
+        return;
+      }
+
+      const decimoTerceiro = salarioBase / 12 * (diasTrabalhados / 30);
+      const feriasProporcionais = (salarioBase / 12 * (diasTrabalhados / 30)) + (salarioBase / 12 * 1 / 3);
+      const saldoSalario = salarioBase / 30 * diasTrabalhados;
+
+      let multaFGTSPercentual = 0.2, incentivoA = 0, incentivoB = 0;
+
+      if (versao === '2021') {
+        multaFGTSPercentual = 0.2;
+        incentivoA = salarioBase * 0.2 * Math.min(tempoServico, 5);
+      } else {
+        multaFGTSPercentual = idade <= 70 ? 0.4 : idade === 71 || idade === 72 || idade === 73 ? 0.35 : 0.3;
+        const pesoA = idade <= 70 ? 3 : idade === 71 ? 2.8 : idade === 72 ? 2.6 : idade === 73 ? 2.4 : 2.2;
+        const limitadorA = idade <= 70 ? 0.7 : idade === 71 ? 0.6 : idade === 72 ? 0.5 : idade === 73 ? 0.4 : 0.3;
+        const periodoB = idade <= 70 ? 3 : idade === 71 ? 6 : idade === 72 ? 9 : idade === 73 ? 12 : 15;
+
+        const mediaA = (tempoServico / 4) * pesoA;
+        incentivoA = salarioBase * mediaA * limitadorA;
+
+        const mediaB = (tempoServico / periodoB) * 2;
+        incentivoB = salarioBase * mediaB;
+      }
+
+      const multaFGTS = saldoFGTS * multaFGTSPercentual;
+      const totalVerbas = decimoTerceiro + feriasProporcionais + saldoSalario + multaFGTS;
+      const totalIncentivos = incentivoA + incentivoB;
+      const totalGeral = totalVerbas + totalIncentivos;
+
+      const moeda = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+      conteudoPDF = `PDVI Versão: ${versao}\nIdade: ${idade}\nTempo de Serviço: ${tempoServico}\nSalário Base: ${moeda(salarioBase)}\nSaldo FGTS: ${moeda(saldoFGTS)}\nDias Trabalhados: ${diasTrabalhados}\n\n13º: ${moeda(decimoTerceiro)}\nFérias: ${moeda(feriasProporcionais)}\nSaldo de Salário: ${moeda(saldoSalario)}\nMulta FGTS (${(multaFGTSPercentual * 100)}%): ${moeda(multaFGTS)}\nTotal Verbas Rescisórias: ${moeda(totalVerbas)}\n\nIncentivo A: ${moeda(incentivoA)}\nIncentivo B: ${moeda(incentivoB)}\nTotal Incentivos: ${moeda(totalIncentivos)}\n\nTotal Geral: ${moeda(totalGeral)}`;
+
+      document.getElementById("resultado").innerHTML = conteudoPDF.replace(/\n/g, '<br>');
+      document.getElementById("gerarPDF").style.display = "block";
+    }
+
+    function gerarPDF() {
+      const pdf = new window.jspdf.jsPDF();
+      conteudoPDF.split("\n").forEach((linha, i) => pdf.text(linha, 10, 10 + i * 7));
+      pdf.save("simulacao_pdvi.pdf");
+    }
+  </script>
+</body>
+</html>
